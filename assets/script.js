@@ -3,10 +3,13 @@ var timerDisplayEl = document.querySelector("#timer");
 var startBtnEl = document.querySelector("#start-btn");
 var answerChoiceEl = document.querySelector(".current-slide");
 var timerEl = document.querySelector("#timer");
+var initialsInputEl = document.querySelector(".initials-input");
+var submitBtnEl = document.querySelector("#initials-submit-btn");
 var testScore = 0;
 var currentQuestionIndex = 0;
 var timeLeft = 60;
 var hasQuizEnded = false;
+var playerScores = [];
 
 
 
@@ -30,7 +33,7 @@ var questionsArr = [
     },
 
     {
-    question: "What abundanct metal in Mars' soil gives it its ",
+    question: "What abundant metal in Mars' soil gives it its red color?",
     a: "Copper",
     b: "Iron",
     c: "Aluminum",
@@ -177,7 +180,7 @@ var newQuestionHandler = function() {
 
     newQuestionDiv.appendChild(newAnswerEl);
     quizWindowEl.appendChild(newQuestionDiv);
-    console.log(newQuestionDiv);
+    
     
 }
 
@@ -186,9 +189,9 @@ var newQuestionHandler = function() {
 var answerInputHandler = function(event) {
     var userAnswerId = event.target.getAttribute("data-answer-id");
     if (userAnswerId === questionsArr[currentQuestionIndex].correctAnswer) {
+        testScore++;
         
         if (currentQuestionIndex < questionsArr.length - 1) {
-        testScore++;
         currentQuestionIndex++;
         newQuestionHandler();
         }
@@ -214,11 +217,57 @@ var endQuiz = function() {
 
     //display score and ask for user initals
     var recordedScore = document.createElement("div");
+    recordedScore.className = "current-slide";
     recordedScore.innerHTML = "<h2>You scored <span class='final score'>" + testScore + "</span>!";
     var initialsInputField = document.createElement("form")
-    initialsInputField.innerHTML = "<input type='text' class='initials-input name='initials'>Enter Your Initials</input><button type='submit' class='initials-submit-btn'>Submit</button>";
+    initialsInputField.className = "current-slide";
+    initialsInputField.innerHTML = "<input type='text' class='initials-input' name='initials' placeholder='Enter initials here'></input><button type='submit' id= 'initials-submit-btn' class='initials-submit-btn'>Submit</button>";
     quizWindowEl.appendChild(recordedScore);
     quizWindowEl.appendChild(initialsInputField);
+
+    
+    
+}
+
+var saveScoreHandler = function(event) {
+    event.preventDefault();
+    var playerInitials = document.querySelector(".initials-input").value;
+    var playerResults = {init: playerInitials, result: testScore};
+    playerScores.push(playerResults);
+    
+    
+
+    localStorage.setItem("score", JSON.stringify(playerScores));
+
+    displayScoreScreen();
+}
+
+var displayScoreScreen = function() {
+    // remove current question
+    var currentQuestionEl = document.querySelector(".current-slide");
+    currentQuestionEl.remove();
+    
+
+    //retrieve stored results and convert into array to cycle through
+    var highScores = JSON.parse(localStorage.getItem("score"));
+    console.log(highScores);
+    
+
+    //build a div and elements within to display high scores
+    var scoreScreen = document.createElement("div");
+    scoreScreen.className = "current-slide";
+    var scoreHeader = document.createElement("h2")
+    scoreHeader.textContent = "High Scores";
+    var scoreList = document.createElement("ul")
+    quizWindowEl.appendChild(scoreHeader);
+    quizWindowEl.appendChild(scoreScreen);
+    quizWindowEl.appendChild(scoreList);
+
+    for (var i = 0; i <= highScores.length; i++) {
+        var scoreListItemEl = document.createElement("li");
+        scoreListItemEl.textContent = highScores[i].init + "-" + highScores[i].result;
+        scoreList.appendChild(scoreListItemEl);
+    }
 }
 
 
@@ -226,7 +275,11 @@ startBtnEl.addEventListener("click", startQuiz);
 document.addEventListener("click", function(event) {
     if (event.srcElement.className === "answer-btn"){
         answerInputHandler(event);
-    }
-});
+}})
 
+document.addEventListener("click", function(event) {
+    if (event.srcElement.className === "initials-submit-btn") {
+        saveScoreHandler(event);
+    }
+})
 
